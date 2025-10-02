@@ -1,3 +1,4 @@
+using System.Collections;
 using System.Security.Cryptography.X509Certificates;
 using Unity.VisualScripting;
 using UnityEngine;
@@ -6,20 +7,26 @@ public class Player : MonoBehaviour
 {
     public float moveSpeed = 5f;
     public float jumpForce = 10f;
-    public Transform groundCheck;
+    private bool isGrounded;
     public float groundCheckRadius = 0.2f;
-    public LayerMask groundLayer;
     public bool isFaceRight = true;
-
-    public Transform wallCheck;
     public float wallSlidingSpeed = 5f;
     public float wallCheckRadius = 0.2f;
-    public LayerMask wallLayer;
+    
 
-
+    private bool canDash = true;
+    private bool isDashing;
+    private float dashingPower = 20f;
+    private float dashingTime = 0.2f;
+    private float dashingCooldown = 1f;
 
     private Rigidbody2D rb;
-    private bool isGrounded;
+    public Transform groundCheck;
+    public Transform wallCheck;
+    public LayerMask groundLayer;
+    public LayerMask wallLayer;
+    public TrailRenderer tr;
+
 
     private bool canDoubleJump = false;
 
@@ -43,8 +50,7 @@ public class Player : MonoBehaviour
     void Update()
     {
         float moveInput = Input.GetAxis("Horizontal");
-        //jump();
-        //doubleJump();
+        if (isDashing) return;
         HandleJumpInput();
         wallSlide();
         wallJump();
@@ -55,10 +61,16 @@ public class Player : MonoBehaviour
         }
         setAnimation(moveInput);
 
+        if (Input.GetKeyDown(KeyCode.LeftShift) && canDash)
+        {
+            StartCoroutine(Dash());
+        }
+
     }
 
     private void FixedUpdate()
     {
+        if (isDashing) return;
         //creates a circle with raidus 0.2 that check if player hits the ground layer 
         isGrounded = Physics2D.OverlapCircle(groundCheck.position, groundCheckRadius, groundLayer);
         isTouchingWall = Physics2D.OverlapCircle(wallCheck.position, wallCheckRadius, wallLayer);
@@ -114,35 +126,17 @@ public class Player : MonoBehaviour
             transform.localScale = localScale;
         }
     }
-    private void jump()
-    {
-        if (Input.GetKeyDown(KeyCode.Space) && isGrounded)
-        {
-            rb.velocity = new Vector2(rb.velocity.x, jumpForce);
-            canDoubleJump = true;
-        }
-    }
-
-    private void doubleJump()
-    {
-        if (Input.GetKeyDown(KeyCode.Space) && !isGrounded && canDoubleJump)
-        {
-            rb.velocity = new Vector2(rb.velocity.x, jumpForce*0.5f);
-            canDoubleJump = false;
-            animator.Play("Player_DoubleJump");
-        }
-    }
 
     private void HandleJumpInput()
     {
         // Regular jump
-        if (Input.GetKeyDown(KeyCode.Space) && isGrounded)
+        if (Input.GetButtonDown("Jump") && isGrounded)
         {
             rb.velocity = new Vector2(rb.velocity.x, jumpForce);
             canDoubleJump = true;
         }
         // Wall jump (takes priority over double jump)
-        else if (Input.GetKeyDown(KeyCode.Space) && isWallSliding)
+        else if (Input.GetButtonDown("Jump") && isWallSliding)
         {
             isWallJumping = true;
             float wallJumpDir = -transform.localScale.x;
@@ -157,7 +151,7 @@ public class Player : MonoBehaviour
             Invoke(nameof(StopWallJumping), wallJumpingDuration);
         }
         // Double jump (only if not wall sliding)
-        else if (Input.GetKeyDown(KeyCode.Space) && !isGrounded && !isWallSliding && canDoubleJump)
+        else if (Input.GetButtonDown("Jump") && !isGrounded && !isWallSliding && canDoubleJump)
         {
             rb.velocity = new Vector2(rb.velocity.x, jumpForce);
             canDoubleJump = false;
@@ -215,6 +209,22 @@ public class Player : MonoBehaviour
     private void StopWallJumping()
     {
         isWallJumping = false;
+    }
+
+    private IEnumerator Dash()
+    {
+        canDash = false;
+        isDashing = true;
+        float originalGravity = rb.gravityScale;
+        rb.gravityScale = 0f;
+        rb.velocity = new Vector2(transform.localScale.x * dashingPower, 0f);
+        tr.emitting = true;
+        yield return new WaitForSeconds(dashingTime);
+        tr.emitting = false;
+        rb.gravityScale = originalGravity;
+        isDashing = false;
+        yield return new WaitForSeconds(dashingCooldown);
+        canDash = true;
     }
 
 }

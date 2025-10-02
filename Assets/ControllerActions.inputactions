@@ -1,0 +1,46 @@
+{
+    "version": 1,
+    "name": "ControllerActions",
+    "maps": [
+        {
+            "name": "XboxController",
+            "id": "31972082-ee7e-42db-bf3b-65eba1da87de",
+            "actions": [
+                {
+                    "name": "Dash",
+                    "type": "Button",
+                    "id": "41d7b06c-485b-4dca-bb98-0df782972b42",
+                    "expectedControlType": "",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
+                }
+            ],
+            "bindings": [
+                {
+                    "name": "",
+                    "id": "ae3e92a3-4359-4772-9411-dc1702206a24",
+                    "path": "<XInputController>/rightTrigger",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Dash",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "fec92b94-523c-4977-b0c2-685f8e3bacae",
+                    "path": "",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Dash",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                }
+            ]
+        }
+    ],
+    "controlSchemes": []
+}
